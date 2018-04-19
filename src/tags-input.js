@@ -393,7 +393,7 @@ tagsInput.directive('tagsInput', function($timeout, $document, $window, $q, tags
                     // automatically, but since the model is an array, $setViewValue does nothing and it's up to us to do it.
                     // Unfortunately this won't trigger any registered $parser and there's no safe way to do it.
                     ngModelCtrl.$setDirty();
-                    focusInput();
+                    // focusInput();
                 })
                 .on('invalid-tag', function() {
                     scope.newTag.invalid = true;
