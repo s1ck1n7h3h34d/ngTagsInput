@@ -184,21 +184,6 @@ describe('tags-input directive', function() {
             expect(isolateScope.tagList.index).toBe(-1);
         });
 
-        it('sets focus on the input field after a tag is added', function() {
-            // Arrange
-            compile();
-
-            var input = getInput()[0];
-            spyOn(input, 'focus');
-
-            // Act
-            newTag('foo');
-            $timeout.flush();
-
-            // Assert
-            expect(input.focus).toHaveBeenCalled();
-        });
-
         it('sets focus on the input field after a tag is removed', function() {
             // Arrange
             $scope.tags = generateTags(3);
