@@ -84,13 +84,13 @@ tagsInput.directive('tagsInput', function($timeout, $document, $window, $q, tags
 
         self.items = [];
 
-        self.addText = function(text) {
+        self.addText = function(text, skipFocus) {
             var tag = {};
             setTagText(tag, text);
-            return self.add(tag);
+            return self.add(tag, skipFocus);
         };
 
-        self.add = function(tag) {
+        self.add = function(tag, skipFocus) {
             var tagText = getTagText(tag);
 
             if (options.replaceSpacesWithDashes) {
@@ -102,7 +102,7 @@ tagsInput.directive('tagsInput', function($timeout, $document, $window, $q, tags
             return canAddTag(tag)
                 .then(function() {
                     self.items.push(tag);
-                    events.trigger('tag-added', { $tag: tag });
+                    events.trigger('tag-added', { $tag: tag, skipFocus: skipFocus });
                 })
                 .catch(function() {
                     if (tagText) {
@@ -387,13 +387,15 @@ tagsInput.directive('tagsInput', function($timeout, $document, $window, $q, tags
                 .on('tag-added', function() {
                     scope.newTag.text('');
                 })
-                .on('tag-added tag-removed', function() {
+                .on('tag-added tag-removed', function(data) {
                     scope.tags = tagList.getItems();
                     // Ideally we should be able call $setViewValue here and let it in turn call $setDirty and $validate
                     // automatically, but since the model is an array, $setViewValue does nothing and it's up to us to do it.
                     // Unfortunately this won't trigger any registered $parser and there's no safe way to do it.
                     ngModelCtrl.$setDirty();
-                    // focusInput();
+                    if (!data || !data.skipFocus) {
+                        focusInput();
+                    }
                 })
                 .on('invalid-tag', function() {
                     scope.newTag.invalid = true;
@@ -413,8 +415,9 @@ tagsInput.directive('tagsInput', function($timeout, $document, $window, $q, tags
                 })
                 .on('input-blur', function() {
                     if (options.addOnBlur && !options.addFromAutocompleteOnly) {
-                        tagList.addText(scope.newTag.text());
+                        tagList.addText(scope.newTag.text(), !window.tabPressed);
                     }
+                    window.tabPressed = false;
                     element.triggerHandler('blur');
                     setElementValidity();
                 })
@@ -422,7 +425,9 @@ tagsInput.directive('tagsInput', function($timeout, $document, $window, $q, tags
                     var key = event.keyCode,
                         addKeys = {},
                         shouldAdd, shouldRemove, shouldSelect, shouldEditLastTag;
-
+                    if (key === 9) {
+                        window.tabPressed = true; // I know, it's lame.
+                    }
                     if (tiUtil.isModifierOn(event) || hotkeys.indexOf(key) === -1) {
                         return;
                     }
